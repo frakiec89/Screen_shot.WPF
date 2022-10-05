@@ -1,0 +1,109 @@
+﻿<Window x:Class="Screen_shot.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Screen_shot.WPF"
+        mc:Ignorable="d"
+        FontSize="18"
+        MinHeight="300" MinWidth="300"
+        Title="Начать  стримить"  SizeToContent="WidthAndHeight">
+    <Window.Resources>
+        <Style x:Key="btn" TargetType="Button" >
+            <Setter Property="Margin" Value="10" />
+            <Setter Property="Padding" Value="5" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+
+    </Window.Resources>
+    
+    <Grid>
+        <StackPanel 
+            Margin="5,15,5,10"
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"  Margin="5"> 
+                <TextBlock
+                    Margin="5"  VerticalAlignment="Center"
+                    >Укажите  адрес сервера </TextBlock>
+              
+                <TextBox Margin="5"
+                    x:Name="tbURi" MinWidth="200"
+                    ></TextBox>
+               
+                <TextBlock
+                    Margin="5"  VerticalAlignment="Center"
+                    >Укажите протокол</TextBlock>
+
+                <ComboBox Name="cbProtacol" Margin="2"
+                          ></ComboBox>
+
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"  Margin="5">
+                <RadioButton Margin="5" x:Name="rbMain">основной  экран </RadioButton>
+                <RadioButton Margin="5" x:Name="rbNotMain">вспомогательный</RadioButton>
+
+
+            </StackPanel>
+
+
+
+
+            <Border BorderBrush="Black"
+                Margin="5" Padding="5" VerticalAlignment="Center" HorizontalAlignment="Center"
+                BorderThickness="1" >
+                <StackPanel Orientation="Horizontal" Name ="steckStep"
+                >
+                    <TextBlock Margin="5"
+                               VerticalAlignment="Center"
+                               Text="Укажите время обновления" />
+                    <TextBox x:Name="tbStep" Margin="5"
+                             MinWidth="100"
+                             ></TextBox>
+                    <TextBlock Margin="5"
+                               VerticalAlignment="Center"
+                               Text="мс" />
+                </StackPanel>
+            </Border>
+
+
+            <Border BorderBrush="Black"
+                Margin="5" Padding="5" VerticalAlignment="Center" HorizontalAlignment="Center"
+                BorderThickness="1" >
+            <StackPanel>
+                <Button 
+                x:Name="btStaru"  Style="{StaticResource btn}"
+                Click="btnStart_Click"
+                >Старт Стрима</Button>
+                <Button
+                x:Name="btnStop" Margin="10" Style="{StaticResource btn}"
+                Click="btnStop_Click"
+                >Стоп</Button>
+            </StackPanel>
+        </Border>
+
+            <TextBlock
+                HorizontalAlignment="Center" Margin="5"
+                >пред просмотр</TextBlock>
+
+
+            <Border BorderBrush="Black"  x:Name="brImage"
+                Margin="5" Padding="5"
+                VerticalAlignment="Center" 
+                    HorizontalAlignment="Center"
+                     MinHeight="200" MinWidth="200" 
+                    
+                 BorderThickness="1" >
+                <Image x:Name="myImage"
+                      MinHeight="200" MinWidth="200"    
+                 />
+
+
+            </Border>
+
+
+        </StackPanel>
+
+    </Grid>
+</Window>
