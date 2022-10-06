@@ -8,14 +8,7 @@
         FontSize="18"
         MinHeight="300" MinWidth="300"
         Title="Начать  стримить"  SizeToContent="WidthAndHeight">
-    <Window.Resources>
-        <Style x:Key="btn" TargetType="Button" >
-            <Setter Property="Margin" Value="10" />
-            <Setter Property="Padding" Value="5" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
-        </Style>
-
-    </Window.Resources>
+    
     
     <Grid>
         <StackPanel 
@@ -55,6 +48,14 @@
                 BorderThickness="1" >
                 <StackPanel Orientation="Horizontal" Name ="steckStep"
                 >
+                    <TextBlock Margin="5"
+                               VerticalAlignment="Center"
+                               Text="Укажите ключ трансляции" />
+                    <TextBox x:Name="tbKey" Margin="5"
+                             MinWidth="100"
+                             ></TextBox>
+                    
+                    
                     <TextBlock Margin="5"
                                VerticalAlignment="Center"
                                Text="Укажите время обновления" />

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Screen_shot.WPF.Controllers;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -8,6 +9,7 @@ using System.Net;
 using System.Security.Policy;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
@@ -26,11 +28,9 @@ namespace Screen_shot.WPF
     /// </summary>
     public partial class MainWindow : Window
     {
-
         string[] protacols = new string[] { 
             "HTTP" , "HTTPS"
         }; 
-
 
         private string _url = "192.168.10.160:81"; //По Умолчанию
         public int Step = 100;
@@ -39,7 +39,7 @@ namespace Screen_shot.WPF
         public MainWindow()
         {
             InitializeComponent();
-
+          
             this.Loaded += MainWindow_Loaded;
             timer.Tick += Timer_Tick;
             this.SizeChanged += MainWindow_SizeChanged;
@@ -57,9 +57,7 @@ namespace Screen_shot.WPF
             cbProtacol.ItemsSource = protacols;
             cbProtacol.SelectedIndex = 0;
             tbURi.Text = _url;
-
             rbMain.IsChecked = true;
-
             tbStep.Text = "100"; 
             timer.Tick += Timer_Tick;
             timer.Interval = new TimeSpan(0, 0, 0, 0, Step);
@@ -71,23 +69,62 @@ namespace Screen_shot.WPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Timer_Tick(object? sender, EventArgs e)
+        private    void Timer_Tick(object? sender, EventArgs e)
         {
-            Bitmap bitmap = SCREANMONOTOR();
-            SendPicture(bitmap, GetUri());
-            SetImage(GetUri());
+            try
+            {
+                Thread thread = new Thread(RunContent);
+                thread.Start();
+            }
+            catch (Exception ex)
+            {
+                var r = MessageBox.Show(ex.Message, "Остановить  стрим ? ", MessageBoxButton.YesNo);
+                if (r == MessageBoxResult.Yes)
+                    timer.Stop();
+            }
+            
         }
 
-        private  Bitmap SCREANMONOTOR()
+        private void RunContent()
         {
 
+            string key = string.Empty;
+            Dispatcher.Invoke(() => key = tbKey.Text);
+
+            if (string.IsNullOrEmpty(key))
+            {
+                MessageBox.Show("Укажите ключ"); return;
+            }
+               
+
+            try
+            {
+                Bitmap bitmap = SCREANMONOTOR();
+                ImageController.SendPicture(bitmap, GetUri() , key);
+                Dispatcher.Invoke( () =>  myImage.Source = ImageController.SetImage(GetUri(),
+                   key) 
+                    );
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        private   Bitmap SCREANMONOTOR()
+        {
             int  w =  (int )System.Windows.SystemParameters.FullPrimaryScreenWidth;
             int  h = (int) System.Windows.SystemParameters.FullPrimaryScreenHeight;
-            if (rbMain.IsChecked == true)
-                return GetScreenShot(w, h, new System.Drawing.Point(0, 0));
 
+            var bull = false;
+            Dispatcher.Invoke(() => bull = rbMain.IsChecked.Value);
 
-            if(rbNotMain.IsChecked == true)
+            if (bull == true)
+                return ImageController.GetScreenShot(w, h, new System.Drawing.Point(0, 0));
+
+            
+            Dispatcher.Invoke(() => bull = rbNotMain.IsChecked.Value);
+            if (bull == true)
             {
                 int wFull = (int)System.Windows.SystemParameters.VirtualScreenWidth;
                 var w2 = wFull - w;
@@ -101,24 +138,17 @@ namespace Screen_shot.WPF
                 if (hFull > h)
                     h2 = hFull;
 
-                return GetScreenShot(w2, h2, new System.Drawing.Point((int)w, (int)0));
+                return ImageController.GetScreenShot(w2, h2, new System.Drawing.Point((int)w, (int)0));
+
             }
             return null;
         }
 
-        private Bitmap GetScreenShot(int widht, int height, System.Drawing.Point pLT)
-        {
-            Bitmap printscreen = new Bitmap(widht, height);
-            using   Graphics graphics = Graphics.FromImage(printscreen as Image);
-            graphics.CopyFromScreen(pLT, new System.Drawing.Point(0, 0), printscreen.Size);
-            return printscreen;
-        }
-
-
-
         private string GetUri()
         {
-            return $"{cbProtacol.SelectedItem.ToString()}://{tbURi.Text}";
+            string ur = string.Empty;
+            Dispatcher.Invoke(() => ur = $"{cbProtacol.SelectedItem.ToString()}://{tbURi.Text}");
+            return ur; 
         }
 
         private void btnStart_Click(object sender, RoutedEventArgs e)
@@ -134,8 +164,9 @@ namespace Screen_shot.WPF
             }
             catch (Exception ex )
             {
-                MessageBox.Show(ex.Message);
-                timer.Stop();
+                var r = MessageBox.Show(ex.Message, "Остановить  стрим ? ", MessageBoxButton.YesNo);
+                if (r == MessageBoxResult.Yes)
+                    timer.Stop();
             }
         }
 
@@ -145,31 +176,7 @@ namespace Screen_shot.WPF
             brImage.MaxWidth = this.ActualHeight - 50;
         }
 
-        private static void SendPicture(Bitmap bitmap , string uru)
-        {
-            try
-            {
-                byte[] bData = ImageToByte(bitmap);
-                WebRequest request = WebRequest.Create(uru + @"/api/ScreenRetrieval/PictureReception");
-                request.Method = "POST"; 
-                ImagePost imagePost = new ImagePost()
-                { bytes = bData };
-                string jsonString = JsonSerializer.Serialize(imagePost);
-                byte[] byteArray = Encoding.UTF8.GetBytes(jsonString);
-                request.ContentType = "application/json";
-                request.ContentLength = byteArray.Length;
-             
-                using (Stream dataStream = request.GetRequestStream())
-                {
-                    dataStream.Write(byteArray, 0, byteArray.Length);
-                }
-                WebResponse response = request.GetResponse();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
+      
 
         private void btnStop_Click(object sender, RoutedEventArgs e)
         {
@@ -177,64 +184,6 @@ namespace Screen_shot.WPF
             steckStep.IsEnabled = true; 
             btStaru.IsEnabled = true;
         }
-
-        private void SetImage(string uri)
-        {
-            try
-            {
-                WebRequest request = WebRequest.Create(uri + @"/api/ScreenRetrieval/GetPicture");
-                request.Method = "GET";
-                request.ContentType = "application/json";
-                WebResponse response = request.GetResponse();
-
-                using StreamReader stream = new StreamReader(response.GetResponseStream());
-                var content = stream.ReadToEnd();
-                ImagePost bitmapImage = JsonSerializer.Deserialize<ImagePost>(content);
-                myImage.Source = ToImage(bitmapImage.bytes);
-                response.Close();
-            }
-            catch (Exception ex)
-            {
-                if (MessageBox.Show(ex.Message, "Остановить стрим ? "
-                    , MessageBoxButton.YesNo, MessageBoxImage.Error) == MessageBoxResult.Yes)
-                    timer.Stop();
-
-            }
-        }
-
-        public static byte[] ImageToByte(Image img)
-        {
-            ImageConverter converter = new ImageConverter();
-            return (byte[])converter.ConvertTo(img, typeof(byte[] ));
-        }
-
-
-        public BitmapImage ToImage(byte[] array)
-        {
-            using (var ms = new System.IO.MemoryStream(array))
-            {
-                var image = new BitmapImage();
-                image.BeginInit();
-                image.CacheOption = BitmapCacheOption.OnLoad; // here
-                image.StreamSource = ms;
-                image.EndInit();
-                return image;
-            }
-        }
-       
-
-
-
-
-    }
-
-
-    /// <summary>
-    /// стуктура отправки  получения запроса  для  апи
-    /// </summary>
-    public class ImagePost
-    {
-        public byte[] bytes { get; set; }
     }
 
 }
