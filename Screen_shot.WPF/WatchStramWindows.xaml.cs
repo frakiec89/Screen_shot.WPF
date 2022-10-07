@@ -34,6 +34,8 @@ namespace Screen_shot.WPF
         };
 
 
+        Thread thread;
+
         private string _url = "192.168.10.160:81"; //По Умолчанию
         public int Step = 100;
 
@@ -59,7 +61,7 @@ namespace Screen_shot.WPF
         {
             try
             {
-                Thread thread = new Thread(RunContent);
+                thread = new Thread(RunContent);
                 thread.Start();
             }
             catch (Exception ex)
@@ -80,8 +82,6 @@ namespace Screen_shot.WPF
             {
                 MessageBox.Show("Укажите ключ трансляции"); return;
             }
-                
-
 
             Dispatcher.Invoke(() => imageScrean.Source = ImageController.SetImage(GetUri() , key));
         }
@@ -111,6 +111,7 @@ namespace Screen_shot.WPF
                 Step = Convert.ToInt32(tbStep.Text);
                 timer.Interval = new TimeSpan(0, 0, 0, 0, Step);
                 timer.Start();
+               
             }
             catch (Exception ex)
             {
